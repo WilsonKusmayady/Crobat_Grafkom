@@ -69,8 +69,8 @@ export class CrobatEye {
     const BLACK = [0.0, 0.0, 0.0];
     
     const WIDTH = 0.17;
-    const THICKNESS = 0.04;
-    const ANGLE_HEIGHT = 0.08;
+    const THICKNESS = 0.02;
+    const ANGLE_HEIGHT = 0.04;
 
     let vertices = [], faces = [];
 
