@@ -44,7 +44,7 @@ export class CrobatEye {
   // --- Fungsi Geometri untuk Sklera Kuning (Setengah Lingkaran) ---
   createSclera(GL, _position, _color, _normal) {
     const YELLOW = [1.0, 1.0, 0.0];
-    const RADIUS = 0.15;
+    const RADIUS = 0.16;
     const SEGMENTS = 16;
     let vertices = [], faces = [];
 
