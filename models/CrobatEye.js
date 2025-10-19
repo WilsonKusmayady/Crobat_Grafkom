@@ -1,106 +1,124 @@
 // models/CrobatEye.js
+
 import { SceneObject } from "./SceneObject.js";
 
-export class CrobatEye extends SceneObject {
-  constructor(GL, _position, _color, _normal) {
+// Kelas helper untuk satu bagian mata
+class EyePart extends SceneObject {
+  constructor(GL, _position, _color, _normal, vertices, faces) {
     super(GL, _position, _color, _normal);
+    this.vertices = vertices;
+    this.faces = faces;
+    this.setup();
+  }
+}
 
-    const OUTLINE_COLOR = [0.0, 0.0, 0.0]; // Hitam
-    const YELLOW_COLOR = [1.0, 1.0, 0.0]; // Kuning
-    const RED_COLOR = [1.0, 0.0, 0.0];     // Merah
+// --- Kelas Utama CrobatEye ---
+export class CrobatEye {
+  constructor(GL, _position, _color, _normal) {
+    // 1. Buat Sklera Kuning (Setengah Lingkaran Bawah)
+    this.yellowPart = this.createSclera(GL, _position, _color, _normal);
 
-    const SEGMENTS = 12; // Lebih sedikit → lebih tajam
-    const RADIUS = 0.18; // Lebih besar
-    const EYELID_HEIGHT = 0.12; // Lebih tinggi → lebih menutup
+    // 2. Buat Outline / Kelopak Mata Hitam (BENTUK BARU)
+    this.outlinePart = this.createEyelid(GL, _position, _color, _normal);
+    
+    // 3. Buat Pupil Merah
+    this.redPart = this.createPupil(GL, _position, _color, _normal);
 
-    // === STEP 1: Buat Setengah Lingkaran (Semicircle) ===
-    // Titik pusat bawah
-    this.vertices.push(0, -RADIUS, 0, ...OUTLINE_COLOR, 0, 0, 1);
+    // Atur hierarki posisi agar tidak tumpang tindih (Z-fighting)
+    LIBS.translateZ(this.outlinePart.modelMatrix, 0.01);
+    LIBS.translateZ(this.redPart.modelMatrix, 0.02);
 
-    // Titik-titik setengah lingkaran (dari kiri ke kanan)
-    for (let i = 0; i <= SEGMENTS; i++) {
-      const angle = Math.PI + (i * Math.PI) / SEGMENTS; // Dari 180° ke 360°
-      const x = RADIUS * Math.cos(angle);
-      const y = RADIUS * Math.sin(angle);
-      this.vertices.push(x, y, 0, ...OUTLINE_COLOR, 0, 0, 1);
-    }
+    this.modelMatrix = LIBS.get_I4();
+  }
 
-    // === STEP 2: Buat Eyelid (Top Cap) — Lebih Tebal & Tajam ===
-    // Titik kiri atas eyelid (lebih tinggi dan lebih dalam)
-    this.vertices.push(-RADIUS * 0.9, EYELID_HEIGHT, 0, ...OUTLINE_COLOR, 0, 0, 1);
-    // Titik kanan atas eyelid
-    this.vertices.push(RADIUS * 0.9, EYELID_HEIGHT, 0, ...OUTLINE_COLOR, 0, 0, 1);
+  // --- Fungsi Geometri untuk Sklera Kuning ---
+  createSclera(GL, _position, _color, _normal) {
+    const YELLOW = [1.0, 1.0, 0.0];
+    const RADIUS = 0.15;
+    const SEGMENTS = 16;
+    let vertices = [], faces = [];
 
-    // === STEP 3: Buat Iris Kuning (di dalam semicircle) ===
-    const IRIS_RADIUS = 0.14;
-    this.vertices.push(0, -IRIS_RADIUS, 0, ...YELLOW_COLOR, 0, 0, 1); // Pusat iris
+    vertices.push(0, 0, 0, ...YELLOW, 0, 0, 1);
 
     for (let i = 0; i <= SEGMENTS; i++) {
       const angle = Math.PI + (i * Math.PI) / SEGMENTS;
-      const x = IRIS_RADIUS * Math.cos(angle);
-      const y = IRIS_RADIUS * Math.sin(angle);
-      this.vertices.push(x, y, 0, ...YELLOW_COLOR, 0, 0, 1);
+      const x = RADIUS * Math.cos(angle);
+      const y = RADIUS * Math.sin(angle);
+      vertices.push(x, y, 0, ...YELLOW, 0, 0, 1);
     }
 
-    // === STEP 4: Buat Pupil Merah (di tengah) ===
-    const PUPIL_RADIUS = 0.05;
-    this.vertices.push(0, -PUPIL_RADIUS, 0, ...RED_COLOR, 0, 0, 1); // Pusat pupil
-
-    for (let i = 0; i <= 8; i++) {
-      const angle = (i * 2 * Math.PI) / 8;
-      const x = PUPIL_RADIUS * Math.cos(angle);
-      const y = PUPIL_RADIUS * Math.sin(angle);
-      this.vertices.push(x, y, 0, ...RED_COLOR, 0, 0, 1);
-    }
-
-    // === STEP 5: Buat Faces (Triangulasi) ===
-
-    // Faces untuk Outline (semicircle + eyelid)
-    const baseIndex = 0;
-    const semicircleStart = 1;
-    const semicircleEnd = 1 + SEGMENTS + 1;
-
-    // Triangulasi semicircle
     for (let i = 0; i < SEGMENTS; i++) {
-      this.faces.push(
-        baseIndex,
-        semicircleStart + i,
-        semicircleStart + i + 1
-      );
+      faces.push(0, i + 1, i + 2);
+    }
+    
+    return new EyePart(GL, _position, _color, _normal, vertices, faces);
+  }
+
+// models/CrobatEye.js
+
+// ... (kode lainnya biarkan sama) ...
+
+  // --- FUNGSI EYELID BARU UNTUK MEMBUAT ALIS TAJAM ---
+  createEyelid(GL, _position, _color, _normal) {
+    const BLACK = [0.0, 0.0, 0.0];
+    const RADIUS = 0.16;    // Radius busur bawah, sedikit lebih besar dari sklera kuning
+    const HEIGHT = 0;    // Seberapa tinggi dan tajam puncak alisnya
+    const SEGMENTS = 8;     // Jumlah segmen untuk membuat lengkungan bawah yang mulus
+    let vertices = [], faces = [];
+
+    // 1. Definisikan titik puncak alis sebagai pusat dari "Triangle Fan"
+    const topPoint = [0, HEIGHT, 0];
+    vertices.push(...topPoint, ...BLACK, 0, 0, 1); // Ini akan menjadi vertex index 0
+
+    // 2. Buat serangkaian titik (vertices) yang membentuk busur/lengkungan di bagian bawah.
+    // Loop ini akan membuat setengah lingkaran atas, dari kanan (0°) ke kiri (180°).
+    for (let i = 0; i <= SEGMENTS; i++) {
+        const angle = (i * Math.PI) / SEGMENTS;
+        const x = RADIUS * Math.cos(angle);
+        const y = RADIUS * Math.sin(angle);
+        vertices.push(x, y, 0, ...BLACK, 0, 0, 1);
     }
 
-    // Tambahkan eyelid (segitiga dari titik atas kiri ke kanan ke pusat)
-    const eyelidLeftIndex = semicircleEnd;
-    const eyelidRightIndex = semicircleEnd + 1;
-
-    this.faces.push(
-      baseIndex,
-      eyelidLeftIndex,
-      eyelidRightIndex
-    );
-
-    // Faces untuk Iris (di dalam semicircle)
-    const irisBaseIndex = semicircleEnd + 2;
-    const irisStart = irisBaseIndex + 1;
+    // 3. Buat faces (segitiga) yang menghubungkan titik puncak (index 0)
+    // dengan setiap pasang titik pada busur bawah.
     for (let i = 0; i < SEGMENTS; i++) {
-      this.faces.push(
-        irisBaseIndex,
-        irisStart + i,
-        irisStart + i + 1
-      );
+        // Menghubungkan (puncak, titik_busur_i, titik_busur_i+1)
+        faces.push(0, i + 1, i + 2);
+    }
+    
+    return new EyePart(GL, _position, _color, _normal, vertices, faces);
+  }
+
+// ... (sisa kode di file CrobatEye.js biarkan sama) ...
+  
+  // --- Fungsi Geometri untuk Pupil Merah ---
+  createPupil(GL, _position, _color, _normal) {
+    const RED = [1.0, 0.0, 0.0];
+    const RADIUS = 0.04;
+    const SEGMENTS = 16;
+    let vertices = [], faces = [];
+    
+    vertices.push(0, 0, 0, ...RED, 0, 0, 1);
+
+    for (let i = 0; i <= SEGMENTS; i++) {
+      const angle = (i * 2 * Math.PI) / SEGMENTS;
+      const x = RADIUS * Math.cos(angle);
+      const y = RADIUS * Math.sin(angle);
+      vertices.push(x, y, 0, ...RED, 0, 0, 1);
     }
 
-    // Faces untuk Pupil
-    const pupilBaseIndex = irisStart + SEGMENTS + 1;
-    const pupilStart = pupilBaseIndex + 1;
-    for (let i = 0; i < 8; i++) {
-      this.faces.push(
-        pupilBaseIndex,
-        pupilStart + i,
-        pupilStart + i + 1
-      );
+    for (let i = 0; i < SEGMENTS; i++) {
+      faces.push(0, i + 1, i + 2);
     }
+    
+    return new EyePart(GL, _position, _color, _normal, vertices, faces);
+  }
 
-    this.setup();
+  // Render semua bagian mata
+  render(GL, _Mmatrix, parentMatrix) {
+    const combinedMatrix = LIBS.multiply(parentMatrix, this.modelMatrix);
+    this.yellowPart.render(GL, _Mmatrix, combinedMatrix);
+    this.outlinePart.render(GL, _Mmatrix, combinedMatrix);
+    this.redPart.render(GL, _Mmatrix, combinedMatrix);
   }
 }
