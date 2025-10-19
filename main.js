@@ -4,10 +4,8 @@ import { Axes } from "./models/Axes.js";
 import { CrobatBody } from "./models/CrobatBody.js";
 import { CrobatEye } from "./models/CrobatEye.js"; // <-- File mata yang sudah dikonsolidasi
 import { CrobatEar } from "./models/CrobatEar.js"; // <-- TAMBAHKAN BARIS INI
-import { CrobatMouth } from "./models/CrobatMouth.js";
-// import { CrobatTooth } from "./models/CrobatTooth.js";
-import { CrobatTeeth } from "./models/CrobatTeeth.js";
-
+// import { CrobatMouth } from "./models/CrobatMouth.js";
+import { CrobatMouthAndTeeth } from "./models/CrobatMouthAndTeeth.js";
 // === MAIN FUNCTION ===
 function main() {
   const CANVAS = document.getElementById("mycanvas");
@@ -65,9 +63,8 @@ function main() {
   const rightEye = new CrobatEye(GL, _position, _color, _normal);
   const leftEar = new CrobatEar(GL, _position, _color, _normal);   // <-- TAMBAHKAN BARIS INI
   const rightEar = new CrobatEar(GL, _position, _color, _normal);  // <-- TAMBAHKAN BARIS INI
-  const mouth = new CrobatMouth(GL, _position, _color, _normal); // <-- TAMBAHKAN
-  const teeth = new CrobatTeeth(GL, _position, _color, _normal); // <-- GANTI 4 GIGI DENGAN 1 OBJEK INI
-
+  // const mouth = new CrobatMouth(GL, _position, _color, _normal); // <-- TAMBAHKAN
+  const mouthAndTeeth = new CrobatMouthAndTeeth(GL, _position, _color, _normal);
   // --- MATRIKS & INTERAKSI (Sama seperti sebelumnya) ---
   const PROJMATRIX = LIBS.get_projection(40, CANVAS.width / CANVAS.height, 1, 100);
   const VIEWMATRIX = LIBS.get_I4();
@@ -196,18 +193,23 @@ function main() {
     // =========================================================
 
     // --- MULUT ---
-    const M_MOUTH = mouth.modelMatrix;
-    LIBS.set_I4(M_MOUTH);
-    LIBS.translateZ(M_MOUTH, 1.2);  // Majukan sedikit
-    LIBS.translateY(M_MOUTH, -0.25); // Turunkan
-    mouth.render(GL, _Mmatrix, M_BODY);
+    // const M_MOUTH = mouth.modelMatrix;
+    // LIBS.set_I4(M_MOUTH);
+    // LIBS.translateZ(M_MOUTH, 1.185);  // Majukan sedikit
+    // LIBS.translateY(M_MOUTH, -0.25); // Turunkan
+    // LIBS.rotateX(M_MOUTH, -0.18);
+    // mouth.render(GL, _Mmatrix, M_BODY);
 
-// --- GIGI-GIGI (JAUH LEBIH RAPI)---
-    const M_TEETH = teeth.modelMatrix;
-    LIBS.set_I4(M_TEETH);
-    LIBS.translateZ(M_TEETH, 1.1);
-    LIBS.translateY(M_TEETH, -0.6);
-    teeth.render(GL, _Mmatrix, M_BODY);
+    // =========================================================
+    // GANTI BLOK RENDER MULUT DAN GIGI LAMA DENGAN YANG INI
+    // --- MULUT DAN GIGI ---
+    const M_MOUTH_TEETH = mouthAndTeeth.modelMatrix;
+    LIBS.set_I4(M_MOUTH_TEETH);
+    LIBS.translateZ(M_MOUTH_TEETH, 1.21);
+    LIBS.translateY(M_MOUTH_TEETH, -0.17);
+    LIBS.rotateX(M_MOUTH_TEETH, -0.22);
+    mouthAndTeeth.render(GL, _Mmatrix, M_BODY);
+    // =========================================================
 
     GL.flush();
     window.requestAnimationFrame(render);
