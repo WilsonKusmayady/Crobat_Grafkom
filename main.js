@@ -2,10 +2,11 @@
 
 import { Axes } from "./models/Axes.js";
 import { CrobatBody } from "./models/CrobatBody.js";
-import { CrobatEye } from "./models/CrobatEye.js"; // <-- File mata yang sudah dikonsolidasi
-import { CrobatEar } from "./models/CrobatEar.js"; // <-- TAMBAHKAN BARIS INI
-// import { CrobatMouth } from "./models/CrobatMouth.js";
+import { CrobatEye } from "./models/CrobatEye.js";
+import { CrobatEar } from "./models/CrobatEar.js";
 import { CrobatMouthAndTeeth } from "./models/CrobatMouthAndTeeth.js";
+import { CrobatFoot } from "./models/CrobatFoot.js";
+// import { CrobatUpperWing } from "./models/CrobatUpperWing.js";  
 // === MAIN FUNCTION ===
 function main() {
   const CANVAS = document.getElementById("mycanvas");
@@ -59,12 +60,14 @@ function main() {
   // --- INSTANSIASI OBJEK ---
   const axes = new Axes(GL, _position, _color, _normal);
   const crobatBody = new CrobatBody(GL, _position, _color, _normal, 1.5, 100, 100);
-  const leftEye = new CrobatEye(GL, _position, _color, _normal); // <-- Cukup satu instance per mata
+  const leftEye = new CrobatEye(GL, _position, _color, _normal);
   const rightEye = new CrobatEye(GL, _position, _color, _normal);
-  const leftEar = new CrobatEar(GL, _position, _color, _normal);   // <-- TAMBAHKAN BARIS INI
-  const rightEar = new CrobatEar(GL, _position, _color, _normal);  // <-- TAMBAHKAN BARIS INI
-  // const mouth = new CrobatMouth(GL, _position, _color, _normal); // <-- TAMBAHKAN
+  const leftEar = new CrobatEar(GL, _position, _color, _normal);
+  const rightEar = new CrobatEar(GL, _position, _color, _normal);
   const mouthAndTeeth = new CrobatMouthAndTeeth(GL, _position, _color, _normal);
+  const leftFoot = new CrobatFoot(GL, _position, _color, _normal);
+  const rightFoot = new CrobatFoot(GL, _position, _color, _normal);
+
   // --- MATRIKS & INTERAKSI (Sama seperti sebelumnya) ---
   const PROJMATRIX = LIBS.get_projection(40, CANVAS.width / CANVAS.height, 1, 100);
   const VIEWMATRIX = LIBS.get_I4();
@@ -130,17 +133,12 @@ function main() {
     LIBS.rotateX(M_BODY, 0.3);
     crobatBody.render(GL, _Mmatrix, LIBS.multiply(M_SCENE, M_BODY));
 
-// ... di dalam fungsi render() di main.js ...
-
     // --- MATA KIRI ---
     const M_LEFT_EYE = leftEye.modelMatrix;
-    LIBS.set_I4(M_LEFT_EYE); // Reset
+    LIBS.set_I4(M_LEFT_EYE);
     LIBS.scale(M_LEFT_EYE, 1.3, 1.3, 1.0);
-
-    // **** TAMBAHKAN BARIS INI UNTUK MEMBALIK ALIS ****
     LIBS.scale(M_LEFT_EYE, -1, 1, 1); // Balik secara horizontal
-
-    LIBS.rotateZ(M_LEFT_EYE, -0.35); // Gunakan rotasi positif yang sama
+    LIBS.rotateZ(M_LEFT_EYE, -0.35);
     LIBS.translateZ(M_LEFT_EYE, 1.15); 
     LIBS.translateX(M_LEFT_EYE, -0.55);
     LIBS.translateY(M_LEFT_EYE, 0.45);
@@ -148,60 +146,34 @@ function main() {
 
     // --- MATA KANAN ---
     const M_RIGHT_EYE = rightEye.modelMatrix;
-    LIBS.set_I4(M_RIGHT_EYE); // Reset
-    LIBS.scale(M_RIGHT_EYE, 1.3, 1.3, 1.0); // <-- TAMBAHKAN BARIS INI (perbesar 30%)
+    LIBS.set_I4(M_RIGHT_EYE);
+    LIBS.scale(M_RIGHT_EYE, 1.3, 1.3, 1.0);
     LIBS.rotateZ(M_RIGHT_EYE, 0.35);
     LIBS.translateZ(M_RIGHT_EYE, 1.15);
     LIBS.translateX(M_RIGHT_EYE, 0.55);
     LIBS.translateY(M_RIGHT_EYE, 0.45);
     rightEye.render(GL, _Mmatrix, M_BODY);
 
-// ...
-
-// ... di dalam fungsi render() di main.js ...
-
     // --- TELINGA KIRI ---
     const M_LEFT_EAR = leftEar.modelMatrix;
     LIBS.set_I4(M_LEFT_EAR);
-    
-    // URUTAN YANG BENAR:
-    LIBS.translateX(M_LEFT_EAR, -0.45);     // 1. Posisikan dulu di samping
-    LIBS.translateY(M_LEFT_EAR, 0.75);      // 2. Posisikan di atas
-    
-    LIBS.rotateX(M_LEFT_EAR, -0.3);         // 3. Miringkan ke belakang
-    LIBS.rotateZ(M_LEFT_EAR, 0.25);         // 4. Miringkan ke samping
-    // LIBS.rotateX(M_LEFT_EAR, Math.PI);   // <-- Kita tidak butuh ini lagi dengan model baru
-    LIBS.scale(M_LEFT_EAR, 0.4, 0.8, 0.4);  // 5. Atur ukurannya
-
+    LIBS.translateX(M_LEFT_EAR, -0.45);
+    LIBS.translateY(M_LEFT_EAR, 0.75);
+    LIBS.rotateX(M_LEFT_EAR, -0.3);
+    LIBS.rotateZ(M_LEFT_EAR, 0.25);
+    LIBS.scale(M_LEFT_EAR, 0.4, 0.8, 0.4);
     leftEar.render(GL, _Mmatrix, M_BODY);
 
     // --- TELINGA KANAN ---
     const M_RIGHT_EAR = rightEar.modelMatrix;
     LIBS.set_I4(M_RIGHT_EAR);
-
-    // URUTAN YANG BENAR:
-    LIBS.translateX(M_RIGHT_EAR, 0.45);     // 1. Posisikan dulu di samping
-    LIBS.translateY(M_RIGHT_EAR, 0.75);     // 2. Posisikan di atas
-
-    LIBS.rotateX(M_RIGHT_EAR, -0.3);        // 3. Miringkan ke belakang
-    LIBS.rotateZ(M_RIGHT_EAR, -0.25);       // 4. Miringkan ke samping
-    // LIBS.rotateX(M_RIGHT_EAR, Math.PI);  // <-- Kita tidak butuh ini lagi
-    LIBS.scale(M_RIGHT_EAR, 0.4, 0.8, 0.4); // 5. Atur ukurannya
-    
+    LIBS.translateX(M_RIGHT_EAR, 0.45);
+    LIBS.translateY(M_RIGHT_EAR, 0.75);
+    LIBS.rotateX(M_RIGHT_EAR, -0.3);
+    LIBS.rotateZ(M_RIGHT_EAR, -0.25);
+    LIBS.scale(M_RIGHT_EAR, 0.4, 0.8, 0.4);
     rightEar.render(GL, _Mmatrix, M_BODY);
 
-    // =========================================================
-
-    // --- MULUT ---
-    // const M_MOUTH = mouth.modelMatrix;
-    // LIBS.set_I4(M_MOUTH);
-    // LIBS.translateZ(M_MOUTH, 1.185);  // Majukan sedikit
-    // LIBS.translateY(M_MOUTH, -0.25); // Turunkan
-    // LIBS.rotateX(M_MOUTH, -0.18);
-    // mouth.render(GL, _Mmatrix, M_BODY);
-
-    // =========================================================
-    // GANTI BLOK RENDER MULUT DAN GIGI LAMA DENGAN YANG INI
     // --- MULUT DAN GIGI ---
     const M_MOUTH_TEETH = mouthAndTeeth.modelMatrix;
     LIBS.set_I4(M_MOUTH_TEETH);
@@ -209,7 +181,30 @@ function main() {
     LIBS.translateY(M_MOUTH_TEETH, -0.17);
     LIBS.rotateX(M_MOUTH_TEETH, -0.22);
     mouthAndTeeth.render(GL, _Mmatrix, M_BODY);
-    // =========================================================
+
+    // --- KAKI KIRI ---
+    const M_LEFT_FOOT = leftFoot.modelMatrix;
+    LIBS.set_I4(M_LEFT_FOOT);
+    LIBS.translateX(M_LEFT_FOOT, -0.48);
+    LIBS.translateY(M_LEFT_FOOT, -1.1);
+    LIBS.translateZ(M_LEFT_FOOT, -0.6);
+    LIBS.rotateX(M_LEFT_FOOT, Math.PI);
+    LIBS.rotateX(M_LEFT_FOOT, 1.1);
+    LIBS.rotateZ(M_LEFT_FOOT, -0.2);
+    LIBS.scale(M_LEFT_FOOT, 1.2, 1.2, 1.2);
+    leftFoot.render(GL, _Mmatrix, M_BODY);
+
+    // --- KAKI KANAN ---
+    const M_RIGHT_FOOT = rightFoot.modelMatrix;
+    LIBS.set_I4(M_RIGHT_FOOT);
+    LIBS.translateX(M_RIGHT_FOOT, 0.48);
+    LIBS.translateY(M_RIGHT_FOOT, -1.11);
+    LIBS.translateZ(M_RIGHT_FOOT, -0.6);
+    LIBS.rotateX(M_RIGHT_FOOT, Math.PI);
+    LIBS.rotateX(M_RIGHT_FOOT, 1.1);
+    LIBS.rotateZ(M_RIGHT_FOOT, 0.2);
+    LIBS.scale(M_RIGHT_FOOT, 1.2, 1.2, 1.2);
+    rightFoot.render(GL, _Mmatrix, M_BODY);
 
     GL.flush();
     window.requestAnimationFrame(render);
